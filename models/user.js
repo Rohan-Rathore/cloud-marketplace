@@ -32,7 +32,7 @@ var userSchema = new mongoose.Schema(
     salt: String,
     role: {
       type: Number,
-      default: 0
+      default: 0      // 0-User, 1-CSP, 2-Admin
     }
   },
   {timestamps: true}
@@ -41,29 +41,30 @@ var userSchema = new mongoose.Schema(
 userSchema
   .virtual("password")
   .set(function(password) {
-      this._password = password;    //'_' is used for private variable
-      this.salt = uuidv1();
-      this.encry_password = this.securePassword(password);
+    this._password = password;    // '_' is used for private variable
+    this.salt = uuidv1();
+    this.encry_password = this.securePassword(password);
   })
   .get(function() {
-      return this._password;
+    return this._password;
   });
 
 userSchema.methods = {
-    authenticate: function(plainpassword) {
-        return this.securePassword(plainpassword) === this.encry_password;
-    },
+  autheticate: function(plainpassword) {
+    return this.securePassword(plainpassword) === this.encry_password;
+  },
 
-    securePassword: function(plainpassword) {
-        if (!plainpassword) return "";
-        try {
-            return crypto.createHmac('sha256', this.salt)
-            .update('plainpassword')
-            .digest('hex');
-        } catch (error) {
-            return "";
-        }
+  securePassword: function(plainpassword) {
+    if (!plainpassword) return "";
+    try {
+      return crypto
+        .createHmac("sha256", this.salt)
+        .update(plainpassword)
+        .digest("hex");
+    } catch (err) {
+      return "";
     }
-}
+  }
+};
 
-module.exports = mongoose.model("User", userSchema)
+module.exports = mongoose.model("User", userSchema);
